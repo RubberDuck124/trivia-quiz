@@ -214,21 +214,6 @@
     color: var(--wrong);
   }
 
-  /* submit */
-  #submit-btn {
-    width: 100%;
-    background: var(--accent); color: var(--bg);
-    border: none; border-radius: var(--rsm);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem; font-weight: 500; letter-spacing: 0.06em;
-    padding: 17px; cursor: pointer;
-    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    -webkit-appearance: none;
-  }
-  #submit-btn:hover { background: var(--accent2); box-shadow: 0 4px 20px rgba(79,195,247,0.25); }
-  #submit-btn:active { transform: scale(0.98); }
-  #submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
   /* next */
   #next-btn {
     display: none;
@@ -287,7 +272,6 @@
     autocapitalize="off" spellcheck="false"
   />
 
-  <button id="submit-btn" disabled>Submit</button>
   <button id="next-btn">Next Question →</button>
 
 </div>
@@ -350,17 +334,17 @@ function parseCSV(text) {
     }
     if (row.some(c => c !== '')) rows.push(row);
   }
-  const start = (rows[0] && normalise(rows[0][0]).startsWith('question')) ? 1 : 0;
+  const start = (rows[0] && normalise(rows[0][3]).startsWith('capital')) ? 1 : 0;
   return rows.slice(start).map((r, idx) => {
     const answers = [];
-    for (let c = 3; c <= 12; c++) if (r[c]?.trim()) answers.push(r[c].trim());
+    for (let c = 6; c <= 15; c++) if (r[c]?.trim()) answers.push(r[c].trim());
     return {
       id: idx,
-      question: (r[0]||'').trim(),
-      image: toWikimediaUrl((r[1]||'').trim()),
-      weight: parseInt(r[2])||0,
+      question: (r[3]||'').trim(),
+      image: toWikimediaUrl((r[4]||'').trim()),
+      weight: parseInt(r[5])||0,
       answers,
-      info: (r[13]||'').trim(),
+      info: (r[16]||'').trim(),
     };
   }).filter(q => q.question && q.weight > 0 && q.answers.length > 0);
 }
@@ -403,9 +387,6 @@ function showQuestion(q) {
   input.disabled = false; input.style.display = 'block';
   input.focus();
 
-  const sb = document.getElementById('submit-btn');
-  sb.disabled = true; sb.style.display = 'block';
-
   document.getElementById('result-strip').classList.remove('show');
   document.getElementById('next-btn').classList.remove('show');
 }
@@ -419,7 +400,6 @@ function checkAnswer() {
 
   input.classList.add(isCorrect ? 'correct' : 'wrong');
   input.disabled = true;
-  document.getElementById('submit-btn').style.display = 'none';
 
   if (isCorrect) scoreCorrect++; else scoreWrong++;
 
@@ -467,10 +447,6 @@ setInterval(async () => {
   try { const u = await fetchSheet(); if (u.length) questions = u; } catch(_) {}
 }, POLL_MS);
 
-document.getElementById('answer-input').addEventListener('input', function() {
-  document.getElementById('submit-btn').disabled = this.value.trim() === '';
-});
-
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'Enter') return;
   if (!answered) {
@@ -480,7 +456,6 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-document.getElementById('submit-btn').addEventListener('click', checkAnswer);
 document.getElementById('next-btn').addEventListener('click', () => showQuestion(pickQuestion()));
 
 loadAndStart();
