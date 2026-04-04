@@ -334,17 +334,17 @@ function parseCSV(text) {
     }
     if (row.some(c => c !== '')) rows.push(row);
   }
-  const start = (rows[0] && normalise(rows[0][3]).startsWith('capital')) ? 1 : 0;
+  const start = (rows[0] && normalise(rows[0][4]).startsWith('capital')) ? 1 : 0;
   return rows.slice(start).map((r, idx) => {
     const answers = [];
-    for (let c = 6; c <= 15; c++) if (r[c]?.trim()) answers.push(r[c].trim());
+    for (let c = 7; c <= 16; c++) if (r[c]?.trim()) answers.push(r[c].trim());
     return {
       id: idx,
-      question: (r[3]||'').trim(),
-      image: toWikimediaUrl((r[4]||'').trim()),
-      weight: parseInt(r[5])||0,
+      question: (r[4]||'').trim(),
+      image: toWikimediaUrl((r[5]||'').trim()),
+      weight: parseInt(r[6])||0,
       answers,
-      info: (r[16]||'').trim(),
+      info: (r[17]||'').trim(),
     };
   }).filter(q => q.question && q.weight > 0 && q.answers.length > 0);
 }
