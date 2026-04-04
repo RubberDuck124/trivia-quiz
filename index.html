@@ -616,9 +616,18 @@ document.getElementById('answer-input').addEventListener('input', function() {
   document.getElementById('submit-btn').disabled = this.value.trim() === '';
 });
 
-document.getElementById('answer-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !document.getElementById('submit-btn').disabled && !answered) {
-    checkAnswer();
+// Single Enter key handler covering both phases:
+// Phase 1 (not yet answered): submit the answer
+// Phase 2 (answered):         go to next question
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  if (!answered) {
+    // Only submit if there's something typed
+    if (document.getElementById('answer-input').value.trim() !== '') {
+      checkAnswer();
+    }
+  } else {
+    showQuestion(pickQuestion());
   }
 });
 
@@ -626,12 +635,6 @@ document.getElementById('submit-btn').addEventListener('click', checkAnswer);
 
 document.getElementById('next-btn').addEventListener('click', () => {
   showQuestion(pickQuestion());
-});
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && answered) {
-    showQuestion(pickQuestion());
-  }
 });
 
 // ── START ────────────────────────────────────────────────────────────────────
