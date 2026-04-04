@@ -69,41 +69,11 @@
     z-index: 0;
   }
 
-  /* ── HEADER ── */
-  header {
-    width: 100%;
-    max-width: 640px;
-    padding: 32px 24px 0;
-    position: relative;
-    z-index: 1;
-    text-align: center;
-  }
-
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.2rem, 8vw, 3.2rem);
-    letter-spacing: 0.12em;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .logo span {
-    color: var(--accent);
-  }
-
-  .subtitle {
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-top: 6px;
-  }
-
   /* ── MAIN CARD ── */
   main {
     width: 100%;
     max-width: 640px;
-    padding: 24px 16px 40px;
+    padding: 32px 16px 40px;
     position: relative;
     z-index: 1;
     display: flex;
@@ -169,15 +139,6 @@
   /* ── QUESTION ── */
   #question-area {
     padding: 28px 28px 24px;
-  }
-
-  #question-number {
-    font-size: 0.68rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 10px;
-    font-weight: 500;
   }
 
   #question-text {
@@ -348,46 +309,6 @@
 
   #next-btn:active { transform: scale(0.98); }
 
-  /* ── SCORE BAR ── */
-  #score-bar {
-    display: flex;
-    justify-content: center;
-    gap: 28px;
-    padding: 14px 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-
-  .score-item {
-    text-align: center;
-  }
-
-  .score-value {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.05em;
-    line-height: 1;
-  }
-
-  .score-value.correct-val { color: var(--correct); }
-  .score-value.wrong-val   { color: var(--wrong); }
-  .score-value.total-val   { color: var(--text-muted); }
-
-  .score-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  .score-divider {
-    width: 1px;
-    background: var(--border);
-    align-self: stretch;
-  }
-
   /* ── RESPONSIVE ── */
   @media (max-width: 480px) {
     header { padding: 24px 16px 0; }
@@ -406,32 +327,7 @@
 </head>
 <body>
 
-<header>
-  <div class="logo">Trivia <span>Quiz</span></div>
-  <div class="subtitle">How well do you know the world?</div>
-</header>
-
-<main>
-
-  <!-- Score bar -->
-  <div id="score-bar">
-    <div class="score-item">
-      <div class="score-value correct-val" id="score-correct">0</div>
-      <div class="score-label">Correct</div>
-    </div>
-    <div class="score-divider"></div>
-    <div class="score-item">
-      <div class="score-value wrong-val" id="score-wrong">0</div>
-      <div class="score-label">Wrong</div>
-    </div>
-    <div class="score-divider"></div>
-    <div class="score-item">
-      <div class="score-value total-val" id="score-total">0</div>
-      <div class="score-label">Total</div>
-    </div>
-  </div>
-
-  <!-- Main question card -->
+<main>  <!-- Main question card -->
   <div class="card" id="question-card">
     <div id="status-screen">
       <div class="spinner"></div>
@@ -443,7 +339,6 @@
     </div>
 
     <div id="question-area" style="display:none">
-      <div id="question-number">Question</div>
       <div id="question-text"></div>
     </div>
 
@@ -501,6 +396,19 @@ function normalise(str) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // strip diacritics
     .replace(/\s+/g, ' ');
+}
+
+// ── CONVERT flag URL to supported Wikimedia FilePath format ─────────────────
+function toWikimediaUrl(url) {
+  if (!url) return '';
+  // Already in FilePath format
+  if (url.includes('Special:FilePath')) return url;
+  // Extract filename from thumb URL e.g. /commons/thumb/a/ab/Flag_of_X.svg/320px-Flag_of_X.svg.png
+  const match = url.match(/\/commons\/(?:thumb\/)?[a-f0-9]\/[a-f0-9]{2}\/([^/]+?)(?:\/\d+px-.+)?$/);
+  if (match) {
+    return `https://commons.wikimedia.org/wiki/Special:FilePath/${match[1]}`;
+  }
+  return url; // fallback: return as-is
 }
 
 // ── FETCH SHEET DATA ─────────────────────────────────────────────────────────
@@ -561,7 +469,7 @@ function parseCSV(text) {
     return {
       id:       idx,
       question: (r[0] || '').trim(),
-      image:    (r[1] || '').trim(),
+      image:    toWikimediaUrl((r[1] || '').trim()),
       weight:   parseInt(r[2]) || 0,
       answers,
       info:     (r[13] || '').trim(),
@@ -612,8 +520,6 @@ function showQuestion(q) {
   // Question text
   const qArea = document.getElementById('question-area');
   qArea.style.display = 'block';
-  document.getElementById('question-number').textContent =
-    `Question ${scoreCorrect + scoreWrong + 1}`;
   document.getElementById('question-text').textContent = q.question;
 
   // Answer area
@@ -653,9 +559,6 @@ function checkAnswer() {
 
   // Update score
   if (isCorrect) scoreCorrect++; else scoreWrong++;
-  document.getElementById('score-correct').textContent = scoreCorrect;
-  document.getElementById('score-wrong').textContent   = scoreWrong;
-  document.getElementById('score-total').textContent   = scoreCorrect + scoreWrong;
 
   // Result card
   const resultCard   = document.getElementById('result-card');
@@ -723,6 +626,12 @@ document.getElementById('submit-btn').addEventListener('click', checkAnswer);
 
 document.getElementById('next-btn').addEventListener('click', () => {
   showQuestion(pickQuestion());
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && answered) {
+    showQuestion(pickQuestion());
+  }
 });
 
 // ── START ────────────────────────────────────────────────────────────────────
