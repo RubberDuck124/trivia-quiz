@@ -40,8 +40,8 @@
     font-weight: 300;
     display: flex;
     flex-direction: column;
-    /* Use dvh (dynamic viewport height) so layout respects keyboard */
-    height: 100dvh;
+    /* Only use top 50% of screen so keyboard never covers content */
+    height: 50vh;
   }
 
   /* grid texture */
@@ -115,7 +115,7 @@
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     /* Cap height so question always has room */
-    max-height: 38vh;
+    max-height: 28vh;
   }
 
   #flag-img {
@@ -154,7 +154,7 @@
     background: var(--bg);
     border-top: 1px solid var(--border);
     box-shadow: 0 -8px 32px rgba(0,0,0,0.35);
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    padding: 6px 16px calc(6px + env(safe-area-inset-bottom));
     display: flex; flex-direction: column; gap: 8px;
   }
 
@@ -215,7 +215,7 @@
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     font-size: 1rem; font-weight: 300;
-    padding: 14px 16px;
+    padding: 8px 16px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     -webkit-appearance: none;
@@ -244,7 +244,7 @@
     border: 1px solid rgba(79,195,247,0.3); border-radius: var(--rsm);
     font-family: 'DM Sans', sans-serif;
     font-size: 1rem; font-weight: 400; letter-spacing: 0.06em;
-    padding: 15px; cursor: pointer;
+    padding: 10px; cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
     -webkit-appearance: none;
   }
