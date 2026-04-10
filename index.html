@@ -21,33 +21,37 @@
     --border:  rgba(79,195,247,0.15);
     --radius:  16px;
     --rsm:     10px;
+    /* JS will set this to the actual visible height */
+    --app-height: 100vh;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Lock the whole page to the visual viewport — no scrolling ever */
-  html {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  body {
+  html, body {
+    width: 100%;
     height: 100%;
     overflow: hidden;
     background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+  }
+
+  /* The app wrapper is sized to the visible area above the keyboard */
+  #app {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--app-height);
     display: flex;
     flex-direction: column;
-    /* Only use top 50% of screen so keyboard never covers content */
-    height: 50vh;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: var(--text);
+    overflow: hidden;
+    transition: height 0.05s;
   }
 
   /* grid texture */
-  body::before {
+  #app::before {
     content: '';
-    position: fixed; inset: 0;
+    position: absolute; inset: 0;
     background-image:
       linear-gradient(rgba(79,195,247,0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(79,195,247,0.03) 1px, transparent 1px);
@@ -55,15 +59,15 @@
     pointer-events: none; z-index: 0;
   }
 
-  /* ── TOP AREA: fills all space above bottom panel ── */
+  /* ── TOP AREA ── */
   #top-area {
     flex: 1;
-    min-height: 0; /* critical for flex children to shrink */
+    min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 16px 16px 0;
+    padding: 12px 16px 0;
     position: relative;
     z-index: 1;
   }
@@ -77,71 +81,71 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    /* Card fills available height in top area */
     flex: 1;
     min-height: 0;
   }
 
-  /* loading/error */
   #status-screen {
-    padding: 40px 24px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.95rem;
-    letter-spacing: 0.05em;
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    padding: 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
   }
 
   .spinner {
-    width: 36px; height: 36px;
+    width: 32px; height: 32px;
     border: 2px solid var(--border);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
+    margin: 0 auto 12px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* flag — fixed height, never grows too large */
   #flag-container {
     width: 100%;
     background: var(--surface2);
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    /* Cap height so question always has room */
-    max-height: 28vh;
+    overflow: hidden;
+    /* Takes up to 55% of the card height */
+    max-height: 55%;
   }
 
   #flag-img {
     max-width: 100%;
     max-height: 100%;
     width: auto; height: auto;
-    border-radius: 6px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
+    border-radius: 5px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
     opacity: 0;
     transition: opacity 0.4s ease;
     object-fit: contain;
+    display: block;
   }
   #flag-img.loaded { opacity: 1; }
 
-  /* question — takes remaining space in card */
   #question-area {
-    padding: 20px 24px;
     flex: 1;
+    min-height: 0;
+    padding: 14px 20px;
     display: flex;
     align-items: center;
+    overflow: hidden;
   }
 
   #question-text {
-    font-size: clamp(1.1rem, 4vw, 1.5rem);
+    font-size: clamp(1rem, 3.5vw, 1.4rem);
     font-weight: 400;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
   /* ── BOTTOM PANEL ── */
@@ -153,27 +157,26 @@
     z-index: 10;
     background: var(--bg);
     border-top: 1px solid var(--border);
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.35);
-    padding: 6px 16px calc(6px + env(safe-area-inset-bottom));
-    display: flex; flex-direction: column; gap: 8px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.3);
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 7px;
   }
 
-  /* result strip */
   #result-strip {
     display: none;
     border-radius: var(--rsm);
     overflow: hidden;
-    animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1);
   }
   #result-strip.show { display: block; }
 
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(6px); }
+    from { opacity: 0; transform: translateY(5px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   #result-header {
-    padding: 11px 14px;
+    padding: 9px 12px;
     display: flex; align-items: center; gap: 10px;
   }
   #result-header.correct-bg {
@@ -186,27 +189,25 @@
   }
 
   .result-icon {
-    width: 30px; height: 30px; border-radius: 50%;
+    width: 28px; height: 28px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.9rem; flex-shrink: 0;
+    font-size: 0.85rem; flex-shrink: 0;
   }
   .result-icon.correct-icon { background: rgba(76,175,125,0.25); }
   .result-icon.wrong-icon   { background: rgba(224,92,106,0.25); }
 
-  #result-verdict { font-size: 0.95rem; font-weight: 500; }
+  #result-verdict { font-size: 0.9rem; font-weight: 500; }
   #result-verdict.correct-text { color: var(--correct); }
   #result-verdict.wrong-text   { color: var(--wrong); }
-
-  #correct-answer-line { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  #correct-answer-line { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
 
   #result-info {
-    padding: 8px 14px 10px;
-    font-size: 0.82rem; line-height: 1.5;
+    padding: 7px 12px 8px;
+    font-size: 0.78rem; line-height: 1.45;
     color: var(--muted);
     background: var(--surface);
   }
 
-  /* answer input */
   #answer-input {
     width: 100%;
     background: var(--surface);
@@ -214,8 +215,9 @@
     border-radius: var(--rsm);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
-    font-size: 1rem; font-weight: 300;
-    padding: 8px 16px;
+    font-size: 0.95rem; font-weight: 300;
+    /* Reduced height */
+    padding: 7px 14px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     -webkit-appearance: none;
@@ -236,14 +238,13 @@
     color: var(--wrong);
   }
 
-  /* next button */
   #next-btn {
     display: none;
     width: 100%;
     background: transparent; color: var(--accent);
     border: 1px solid rgba(79,195,247,0.3); border-radius: var(--rsm);
     font-family: 'DM Sans', sans-serif;
-    font-size: 1rem; font-weight: 400; letter-spacing: 0.06em;
+    font-size: 0.95rem; font-weight: 400; letter-spacing: 0.06em;
     padding: 10px; cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
     -webkit-appearance: none;
@@ -255,48 +256,42 @@
 </head>
 <body>
 
-<!-- Top: flag + question, fills space above keyboard -->
-<div id="top-area">
-  <div class="card">
+<div id="app">
 
-    <div id="status-screen">
-      <div class="spinner"></div>
-      Loading questions…
-    </div>
-
-    <div id="flag-container" style="display:none">
-      <img id="flag-img" src="" alt="Flag" />
-    </div>
-
-    <div id="question-area" style="display:none">
-      <div id="question-text"></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- Bottom: result + input + next, always visible -->
-<div id="bottom-panel">
-
-  <div id="result-strip">
-    <div id="result-header">
-      <div class="result-icon" id="result-icon"></div>
-      <div>
-        <div id="result-verdict"></div>
-        <div id="correct-answer-line"></div>
+  <div id="top-area">
+    <div class="card">
+      <div id="status-screen">
+        <div class="spinner"></div>
+        Loading questions…
+      </div>
+      <div id="flag-container" style="display:none">
+        <img id="flag-img" src="" alt="Flag" />
+      </div>
+      <div id="question-area" style="display:none">
+        <div id="question-text"></div>
       </div>
     </div>
-    <div id="result-info"></div>
   </div>
 
-  <input
-    type="text" id="answer-input"
-    placeholder="Type your answer…"
-    autocomplete="off" autocorrect="off"
-    autocapitalize="off" spellcheck="false"
-  />
-
-  <button id="next-btn">Next Question →</button>
+  <div id="bottom-panel">
+    <div id="result-strip">
+      <div id="result-header">
+        <div class="result-icon" id="result-icon"></div>
+        <div>
+          <div id="result-verdict"></div>
+          <div id="correct-answer-line"></div>
+        </div>
+      </div>
+      <div id="result-info"></div>
+    </div>
+    <input
+      type="text" id="answer-input"
+      placeholder="Type your answer…"
+      autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false"
+    />
+    <button id="next-btn">Next Question →</button>
+  </div>
 
 </div>
 
@@ -313,6 +308,24 @@ let answered     = false;
 let scoreCorrect = 0;
 let scoreWrong   = 0;
 
+// ── RESIZE: set --app-height to the actual visible area ──────────────────────
+// On iOS, window.visualViewport tracks the area above the keyboard
+function setAppHeight() {
+  const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', h + 'px');
+  // Also reposition #app to account for any viewport offset (iOS scrolls the viewport)
+  const offsetY = window.visualViewport ? window.visualViewport.offsetTop : 0;
+  document.getElementById('app').style.top = offsetY + 'px';
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', setAppHeight);
+  window.visualViewport.addEventListener('scroll', setAppHeight);
+}
+window.addEventListener('resize', setAppHeight);
+setAppHeight();
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function normalise(str) {
   return str.toLowerCase().trim()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -326,6 +339,7 @@ function toWikimediaUrl(url) {
   return m ? `https://commons.wikimedia.org/wiki/Special:FilePath/${m[1]}` : url;
 }
 
+// ── FETCH & PARSE ────────────────────────────────────────────────────────────
 async function fetchSheet() {
   const res = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`);
   if (!res.ok) throw new Error('Failed to fetch sheet');
@@ -373,6 +387,7 @@ function parseCSV(text) {
   }).filter(q => q.question && q.weight > 0 && q.answers.length > 0);
 }
 
+// ── PICK ─────────────────────────────────────────────────────────────────────
 function pickQuestion() {
   const pool = questions.filter(q => !recentIds.includes(q.id));
   const src = pool.length ? pool : questions;
@@ -382,6 +397,7 @@ function pickQuestion() {
   return src[src.length-1];
 }
 
+// ── SHOW ─────────────────────────────────────────────────────────────────────
 function showQuestion(q) {
   current  = q;
   answered = false;
@@ -413,9 +429,13 @@ function showQuestion(q) {
   document.getElementById('result-strip').classList.remove('show');
   document.getElementById('next-btn').classList.remove('show');
 
+  // Re-measure visible height in case keyboard state changed
+  setAppHeight();
+
   input.focus();
 }
 
+// ── CHECK ─────────────────────────────────────────────────────────────────────
 function checkAnswer() {
   if (answered || !current) return;
   answered = true;
@@ -457,6 +477,7 @@ function checkAnswer() {
   document.getElementById('next-btn').classList.add('show');
 }
 
+// ── INIT ─────────────────────────────────────────────────────────────────────
 async function loadAndStart() {
   try {
     questions = await fetchSheet();
