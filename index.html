@@ -2,46 +2,49 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Trivia Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #122333;
-    --surface:  #1a2f42;
-    --surface2: #1f3a50;
-    --accent:   #4fc3f7;
-    --accent2:  #81d4fa;
-    --correct:  #4caf7d;
-    --wrong:    #e05c6a;
-    --text:     #e8f4fd;
-    --muted:    #7aafc9;
-    --border:   rgba(79,195,247,0.15);
-    --radius:   16px;
-    --rsm:      10px;
+    --bg:      #122333;
+    --surface: #1a2f42;
+    --surface2:#1f3a50;
+    --accent:  #4fc3f7;
+    --accent2: #81d4fa;
+    --correct: #4caf7d;
+    --wrong:   #e05c6a;
+    --text:    #e8f4fd;
+    --muted:   #7aafc9;
+    --border:  rgba(79,195,247,0.15);
+    --radius:  16px;
+    --rsm:     10px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  html, body {
+  /* Lock the whole page to the visual viewport — no scrolling ever */
+  html {
     height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    height: 100%;
+    overflow: hidden;
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     font-weight: 300;
-    overflow-x: hidden;
-  }
-
-  body {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding-bottom: 260px;
+    /* Use dvh (dynamic viewport height) so layout respects keyboard */
+    height: 100dvh;
   }
 
+  /* grid texture */
   body::before {
     content: '';
     position: fixed; inset: 0;
@@ -52,37 +55,45 @@
     pointer-events: none; z-index: 0;
   }
 
-  body::after {
-    content: '';
-    position: fixed; top: -200px; left: 50%;
-    transform: translateX(-50%);
-    width: 600px; height: 400px;
-    background: radial-gradient(ellipse, rgba(79,195,247,0.08) 0%, transparent 70%);
-    pointer-events: none; z-index: 0;
-  }
-
-  /* ── TOP AREA ── */
+  /* ── TOP AREA: fills all space above bottom panel ── */
   #top-area {
-    width: 100%;
-    max-width: 640px;
-    padding: 32px 16px 16px;
+    flex: 1;
+    min-height: 0; /* critical for flex children to shrink */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 16px 0;
     position: relative;
     z-index: 1;
   }
 
   .card {
+    width: 100%;
+    max-width: 600px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Card fills available height in top area */
+    flex: 1;
+    min-height: 0;
   }
 
+  /* loading/error */
   #status-screen {
-    padding: 60px 24px;
+    padding: 40px 24px;
     text-align: center;
     color: var(--muted);
     font-size: 0.95rem;
     letter-spacing: 0.05em;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
   .spinner {
@@ -95,45 +106,56 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* flag — fixed height, never grows too large */
   #flag-container {
     width: 100%;
     background: var(--surface2);
     display: flex; align-items: center; justify-content: center;
-    padding: 28px;
+    padding: 20px;
     border-bottom: 1px solid var(--border);
-    min-height: 140px;
+    flex-shrink: 0;
+    /* Cap height so question always has room */
+    max-height: 38vh;
   }
 
   #flag-img {
-    max-width: 240px; max-height: 160px;
+    max-width: 100%;
+    max-height: 100%;
     width: auto; height: auto;
     border-radius: 6px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
     opacity: 0;
     transition: opacity 0.4s ease;
+    object-fit: contain;
   }
   #flag-img.loaded { opacity: 1; }
 
-  #question-area { padding: 28px; }
+  /* question — takes remaining space in card */
+  #question-area {
+    padding: 20px 24px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
 
   #question-text {
-    font-size: clamp(1.25rem, 4vw, 1.55rem);
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
     font-weight: 400;
     line-height: 1.35;
   }
 
-  /* ── FIXED BOTTOM PANEL ── */
+  /* ── BOTTOM PANEL ── */
   #bottom-panel {
-    position: fixed;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 100%; max-width: 640px;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 600px;
+    align-self: center;
     z-index: 10;
     background: var(--bg);
     border-top: 1px solid var(--border);
     box-shadow: 0 -8px 32px rgba(0,0,0,0.35);
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    display: flex; flex-direction: column; gap: 10px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; gap: 8px;
   }
 
   /* result strip */
@@ -146,13 +168,13 @@
   #result-strip.show { display: block; }
 
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   #result-header {
-    padding: 13px 16px;
-    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px;
+    display: flex; align-items: center; gap: 10px;
   }
   #result-header.correct-bg {
     background: rgba(76,175,125,0.15);
@@ -164,22 +186,22 @@
   }
 
   .result-icon {
-    width: 34px; height: 34px; border-radius: 50%;
+    width: 30px; height: 30px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; flex-shrink: 0;
+    font-size: 0.9rem; flex-shrink: 0;
   }
   .result-icon.correct-icon { background: rgba(76,175,125,0.25); }
   .result-icon.wrong-icon   { background: rgba(224,92,106,0.25); }
 
-  #result-verdict { font-size: 1rem; font-weight: 500; }
+  #result-verdict { font-size: 0.95rem; font-weight: 500; }
   #result-verdict.correct-text { color: var(--correct); }
   #result-verdict.wrong-text   { color: var(--wrong); }
 
-  #correct-answer-line { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  #correct-answer-line { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
 
   #result-info {
-    padding: 10px 16px 12px;
-    font-size: 0.85rem; line-height: 1.55;
+    padding: 8px 14px 10px;
+    font-size: 0.82rem; line-height: 1.5;
     color: var(--muted);
     background: var(--surface);
   }
@@ -193,7 +215,7 @@
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     font-size: 1rem; font-weight: 300;
-    padding: 15px 16px;
+    padding: 14px 16px;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     -webkit-appearance: none;
@@ -214,7 +236,7 @@
     color: var(--wrong);
   }
 
-  /* next */
+  /* next button */
   #next-btn {
     display: none;
     width: 100%;
@@ -222,7 +244,7 @@
     border: 1px solid rgba(79,195,247,0.3); border-radius: var(--rsm);
     font-family: 'DM Sans', sans-serif;
     font-size: 1rem; font-weight: 400; letter-spacing: 0.06em;
-    padding: 17px; cursor: pointer;
+    padding: 15px; cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
     -webkit-appearance: none;
   }
@@ -233,6 +255,7 @@
 </head>
 <body>
 
+<!-- Top: flag + question, fills space above keyboard -->
 <div id="top-area">
   <div class="card">
 
@@ -252,6 +275,7 @@
   </div>
 </div>
 
+<!-- Bottom: result + input + next, always visible -->
 <div id="bottom-panel">
 
   <div id="result-strip">
@@ -323,13 +347,13 @@ function parseCSV(text) {
         }
         row.push(f);
         if (text[i] === ',') i++;
-        else { if (text[i] === '\r') i++; if (text[i] === '\n') i++; break; }
+        else { if (text[i]==='\r') i++; if (text[i]==='\n') i++; break; }
       } else {
         let f = '';
         while (i < text.length && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') f += text[i++];
         row.push(f.trim());
         if (text[i] === ',') i++;
-        else { if (text[i] === '\r') i++; if (text[i] === '\n') i++; break; }
+        else { if (text[i]==='\r') i++; if (text[i]==='\n') i++; break; }
       }
     }
     if (row.some(c => c !== '')) rows.push(row);
@@ -339,12 +363,12 @@ function parseCSV(text) {
     const answers = [];
     for (let c = 7; c <= 16; c++) if (r[c]?.trim()) answers.push(r[c].trim());
     return {
-      id: idx,
+      id:       idx,
       question: (r[4]||'').trim(),
-      image: toWikimediaUrl((r[5]||'').trim()),
-      weight: parseInt(r[6])||0,
+      image:    toWikimediaUrl((r[5]||'').trim()),
+      weight:   parseInt(r[6])||0,
       answers,
-      info: (r[17]||'').trim(),
+      info:     (r[17]||'').trim(),
     };
   }).filter(q => q.question && q.weight > 0 && q.answers.length > 0);
 }
@@ -379,19 +403,17 @@ function showQuestion(q) {
     flagContainer.style.display = 'none';
   }
 
-  document.getElementById('question-area').style.display = 'block';
+  document.getElementById('question-area').style.display = 'flex';
   document.getElementById('question-text').textContent = q.question;
-
-  // Scroll to top so flag/question is always visible
-  window.scrollTo({ top: 0, behavior: 'instant' });
 
   const input = document.getElementById('answer-input');
   input.value = ''; input.className = '';
-  input.disabled = false; input.style.display = 'block';
-  input.focus();
+  input.disabled = false;
 
   document.getElementById('result-strip').classList.remove('show');
   document.getElementById('next-btn').classList.remove('show');
+
+  input.focus();
 }
 
 function checkAnswer() {
@@ -413,18 +435,18 @@ function checkAnswer() {
   const infoEl     = document.getElementById('result-info');
 
   if (isCorrect) {
-    header.className = 'correct-bg';
-    icon.className   = 'result-icon correct-icon';
-    icon.textContent = '✓';
-    verdict.className   = 'correct-text';
-    verdict.textContent = 'Correct!';
+    header.className       = 'correct-bg';
+    icon.className         = 'result-icon correct-icon';
+    icon.textContent       = '✓';
+    verdict.className      = 'correct-text';
+    verdict.textContent    = 'Correct!';
     answerLine.textContent = '';
   } else {
-    header.className = 'wrong-bg';
-    icon.className   = 'result-icon wrong-icon';
-    icon.textContent = '✗';
-    verdict.className   = 'wrong-text';
-    verdict.textContent = 'Not quite.';
+    header.className       = 'wrong-bg';
+    icon.className         = 'result-icon wrong-icon';
+    icon.textContent       = '✗';
+    verdict.className      = 'wrong-text';
+    verdict.textContent    = 'Not quite.';
     answerLine.textContent = `Answer: ${current.answers[0]}`;
   }
 
