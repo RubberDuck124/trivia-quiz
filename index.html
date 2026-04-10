@@ -382,6 +382,9 @@ function showQuestion(q) {
   document.getElementById('question-area').style.display = 'block';
   document.getElementById('question-text').textContent = q.question;
 
+  // Scroll to top so flag/question is always visible
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
   const input = document.getElementById('answer-input');
   input.value = ''; input.className = '';
   input.disabled = false; input.style.display = 'block';
